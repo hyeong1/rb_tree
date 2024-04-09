@@ -101,9 +101,6 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   node_t * parent = t->nil;
   node_t * newNode = (node_t *)calloc(1, sizeof(node_t));
   newNode->key = key;
-  newNode->left = t->nil;
-  newNode->right = t->nil;
-  newNode->color = RBTREE_RED;
 
   while (cur != t->nil) {
     parent = cur;
@@ -113,13 +110,17 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
       cur = cur->left;
   } 
 
+  newNode->parent = parent;
   if (parent == t->nil)
     t->root = newNode;
-  else if (parent->key <= key)
+  else if (parent->key <= newNode->key)
     parent->right = newNode;
   else
     parent->left = newNode;
-  newNode->parent = parent;
+
+  newNode->color = RBTREE_RED;
+  newNode->left = t->nil;
+  newNode->right = t->nil;
 
   insert_fixup(t, newNode);
   return t->root;
@@ -127,7 +128,17 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
   // TODO: implement find
-  return t->root;
+  node_t * cur = t->root;
+  while (cur != t->nil) {
+    if (cur->key == key)
+      return cur;
+    else if (cur->key > key)
+      cur = cur->left;
+    else
+      cur = cur->right;
+  }
+
+  return NULL;
 }
 
 node_t *rbtree_min(const rbtree *t) {
@@ -156,6 +167,7 @@ static void inorder(const rbtree * t, node_t * c, key_t * arr, const size_t n) {
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // TODO: implement to_array
+  pos = 0;
   inorder(t, t->root, arr, n);
   return 0;
 }
