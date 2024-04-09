@@ -172,8 +172,57 @@ static void transplant(rbtree * t, node_t * u, node_t * v) {
   v->parent = u->parent;
 }
 
-static void delete_fixup() {
-
+static void delete_fixup(rbtree * t, node_t * n) {
+  while (n != t->root && n->color == RBTREE_BLACK) {
+    if (n == n->parent->left) {
+      node_t * w = n->parent->right;
+      if (w->color == RBTREE_RED) {
+        w->color = RBTREE_BLACK;
+        n->parent->color = RBTREE_RED;
+        rotate_left(t, n->parent);
+      }
+      if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) {
+        w->color = RBTREE_RED;
+        n = n->parent; // n->p를 red_and_black 노드로 만듦
+      } else {
+        if (w->right->color == RBTREE_BLACK) {
+          w->left->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          rotate_right(t, w);
+          w = n->parent->right;
+        }
+        w->color = n->parent->color;
+        n->parent->color = RBTREE_BLACK;
+        w->right->color = RBTREE_BLACK;
+        rotate_left(t, n->parent);
+        n = t->root;
+      }
+    } else {
+      node_t * w = n->parent->left;
+      if (w->color == RBTREE_RED) {
+        w->color = RBTREE_BLACK;
+        n->parent->color = RBTREE_RED;
+        rotate_right(t, n->parent);
+      }
+      if (w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK) {
+        w->color = RBTREE_RED;
+        n = n->parent; // n->p를 red_and_black 노드로 만듦
+      } else {
+        if (w->left->color == RBTREE_BLACK) {
+          w->right->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          rotate_left(t, w);
+          w = n->parent->left;
+        }
+        w->color = n->parent->color;
+        n->parent->color = RBTREE_BLACK;
+        w->left->color = RBTREE_BLACK;
+        rotate_right(t, n->parent);
+        n = t->root;
+      }
+    }
+  }
+  n->color = RBTREE_BLACK;
 }
 
 int rbtree_erase(rbtree *t, node_t * p) {
@@ -195,6 +244,7 @@ int rbtree_erase(rbtree *t, node_t * p) {
     }
 
     succOriginalColor = succ->color;
+    replaceN = succ->right;
     if (succ != p->right) 
       transplant(t, succ, succ->right);
     else 
@@ -205,8 +255,8 @@ int rbtree_erase(rbtree *t, node_t * p) {
     succ->color = p->color;
   }
 
-  // if (succOriginalColor == RBTREE_BLACK)
-  //   delete_fixup();
+  if (succOriginalColor == RBTREE_BLACK)
+    delete_fixup(t, replaceN);
   free(p);
   return 0;
 }
