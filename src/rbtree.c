@@ -68,14 +68,14 @@ static void rotate_right(rbtree * t, node_t * n) {
 
 static void insert_fixup(rbtree * t, node_t * n) {
   while (n->parent->color == RBTREE_RED) {
-    if (n->parent->parent->left == n->parent) {
+    if (n->parent->parent->left == n->parent) { 
       node_t * u = n->parent->parent->right;
-      if (u->color == RBTREE_RED) {
+      if (u->color == RBTREE_RED) { // case 1
         n->parent->color = RBTREE_BLACK;
         u->color = RBTREE_BLACK;
         n->parent->parent->color = RBTREE_RED;
         n = n->parent->parent;
-      } else {
+      } else { // case 2
         if (n->parent->right == n) {
           n = n->parent;
           rotate_left(t, n);
@@ -86,12 +86,12 @@ static void insert_fixup(rbtree * t, node_t * n) {
       }
     } else {
       node_t * u = n->parent->parent->left;
-      if (u->color == RBTREE_RED) {
+      if (u->color == RBTREE_RED) { // case 3
         n->parent->color = RBTREE_BLACK;
         u->color = RBTREE_BLACK;
         n->parent->parent->color = RBTREE_RED;
         n = n->parent->parent;
-      } else {
+      } else { // case 4
         if (n->parent->left == n) {
           n = n->parent;
           rotate_right(t, n);
@@ -153,12 +153,20 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
 
 node_t *rbtree_min(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t * c = t->root;
+  while (c->left != t->nil) {
+    c = c->left;
+  }
+  return c;
 }
 
 node_t *rbtree_max(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t * c = t->root;
+  while (c->right != t->nil) {
+    c = c->right;
+  }
+  return c;
 }
 
 static void transplant(rbtree * t, node_t * u, node_t * v) {
