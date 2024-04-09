@@ -180,6 +180,7 @@ static void delete_fixup(rbtree * t, node_t * n) {
         w->color = RBTREE_BLACK;
         n->parent->color = RBTREE_RED;
         rotate_left(t, n->parent);
+        w = n->parent->right;
       }
       if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) {
         w->color = RBTREE_RED;
@@ -203,6 +204,7 @@ static void delete_fixup(rbtree * t, node_t * n) {
         w->color = RBTREE_BLACK;
         n->parent->color = RBTREE_RED;
         rotate_right(t, n->parent);
+        w = n->parent->left;
       }
       if (w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK) {
         w->color = RBTREE_RED;
@@ -228,15 +230,15 @@ static void delete_fixup(rbtree * t, node_t * n) {
 int rbtree_erase(rbtree *t, node_t * p) {
   // TODO: implement erase
   node_t * succ = p;
-  node_t * replaceN = NULL;
+  node_t * replaceN;
   color_t succOriginalColor = succ->color;
 
   if (p->left == t->nil) {
     replaceN = p->right;
-    transplant(t, p, replaceN);
+    transplant(t, p, p->right);
   } else if (p->right == t->nil) {
     replaceN = p->left;
-    transplant(t, p, replaceN);
+    transplant(t, p, p->left);
   } else { 
     succ = succ->right;
     while (succ->left != t->nil) {
@@ -245,10 +247,13 @@ int rbtree_erase(rbtree *t, node_t * p) {
 
     succOriginalColor = succ->color;
     replaceN = succ->right;
-    if (succ != p->right) 
+    if (succ != p->right) {
       transplant(t, succ, succ->right);
-    else 
+      succ->right = p->right;
       succ->right->parent = succ;
+    }
+    else 
+      replaceN->parent = succ;
     transplant(t, p, succ);
     succ->left = p->left;
     p->left->parent = succ;
