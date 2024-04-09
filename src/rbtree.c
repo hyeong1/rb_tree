@@ -15,8 +15,18 @@ rbtree *new_rbtree(void) {
   return p;
 }
 
+static void postorder(rbtree * t, node_t * n) {
+  if (n == t->nil)
+    return;
+  postorder(t, n->left);
+  postorder(t, n->right);
+  free(n);
+} 
+
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
+  postorder(t, t->root);
+  free(t->nil);
   free(t);
 }
 
@@ -151,8 +161,53 @@ node_t *rbtree_max(const rbtree *t) {
   return t->root;
 }
 
-int rbtree_erase(rbtree *t, node_t *p) {
+static void transplant(rbtree * t, node_t * u, node_t * v) {
+  // u가 삭제할 노드, v가 대체할 노드 => v가 u 자리로 이동
+  if (u->parent == t->nil)
+    t->root = v;
+  else if (u == u->parent->left)
+    u->parent->left = v;
+  else
+    u->parent->right = v;
+  v->parent = u->parent;
+}
+
+static void delete_fixup() {
+
+}
+
+int rbtree_erase(rbtree *t, node_t * p) {
   // TODO: implement erase
+  node_t * succ = p;
+  node_t * replaceN = NULL;
+  color_t succOriginalColor = succ->color;
+
+  if (p->left == t->nil) {
+    replaceN = p->right;
+    transplant(t, p, replaceN);
+  } else if (p->right == t->nil) {
+    replaceN = p->left;
+    transplant(t, p, replaceN);
+  } else { 
+    succ = succ->right;
+    while (succ->left != t->nil) {
+      succ = succ->left;
+    }
+
+    succOriginalColor = succ->color;
+    if (succ != p->right) 
+      transplant(t, succ, succ->right);
+    else 
+      succ->right->parent = succ;
+    transplant(t, p, succ);
+    succ->left = p->left;
+    p->left->parent = succ;
+    succ->color = p->color;
+  }
+
+  // if (succOriginalColor == RBTREE_BLACK)
+  //   delete_fixup();
+  free(p);
   return 0;
 }
 
